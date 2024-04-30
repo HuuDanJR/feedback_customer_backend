@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 
 const { ObjectId } = mongoose.Types;
+var db = require('../config_mongodb/configmain'); // Import the MongoDB connection
 
 const UserSchema = new mongoose.Schema({
     
@@ -26,5 +27,5 @@ const UserSchema = new mongoose.Schema({
     }
 })
 
-const User = mongoose.model("users", UserSchema);
+const User = db.db1.model("users", UserSchema);
 module.exports = User;

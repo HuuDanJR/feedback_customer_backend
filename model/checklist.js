@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 const moment = require('moment-timezone');
 
+var db = require('../config_mongodb/configmain'); // Import the MongoDB connection
 
 const { ObjectId } = mongoose.Types;
 
@@ -33,5 +34,5 @@ const CheckListSchema = new mongoose.Schema({
 
 })
 
-const CheckList = mongoose.model("checklists", CheckListSchema);
+const CheckList = db.db1.model("checklists", CheckListSchema);
 module.exports = CheckList;

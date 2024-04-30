@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var db = require('../config_mongodb/configmain'); // Import the MongoDB connection
 
 const ImageSchema = new mongoose.Schema({
    caption: {
@@ -20,5 +21,5 @@ const ImageSchema = new mongoose.Schema({
     },
 })
 
-const Images = mongoose.model("image", ImageSchema);
+const Images = db.db1.model("image", ImageSchema);
 module.exports = Images;

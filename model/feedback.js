@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
 
 const { ObjectId } = mongoose.Types;
+var db = require('../config_mongodb/configmain'); // Import the MongoDB connection
+
 
 const FeedBackSchema = new mongoose.Schema({
     id: {
@@ -41,5 +43,5 @@ const FeedBackSchema = new mongoose.Schema({
     },
 })
 
-const FeedBacks = mongoose.model("feedbacks", FeedBackSchema);
+const FeedBacks = db.db1.model("feedbacks", FeedBackSchema);
 module.exports = FeedBacks;

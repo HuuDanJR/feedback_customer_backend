@@ -198,17 +198,19 @@ router.get('/export_data', async (req, res) => {
         } else {
           const workbook = new Excel.Workbook();
           const sheet = workbook.addWorksheet('Sheet1');
-          sheet.addRow(["STT", "ID", "USER NAME", "USERNAME ENGLISH", "TITLE", "BODY", "CREATE AT",]); // Add header row
+          sheet.addRow(["STT",  "USER NAME", "USERNAME ENGLISH", "TITLE","TIME",  "DATE",]); // Add header row
           data.forEach((item, index) => {
-            const row = sheet.addRow([index + 1, item._id, item.username, item.username_en, item.title, item.body, item.createdAt,]); // Add data rows
+            const createdAt = new Date(item.createdAt);
+            const date = createdAt.toLocaleDateString(); // Extract date component
+            const time = createdAt.toLocaleTimeString(); 
             if (item.isCorrect === true) {
               row.getCell('F').fill = {
                 type: 'pattern',
                 pattern: 'solid',
                 fgColor: { argb: 'C6EFCE' } // Set background color to light green
               };
-  
             }
+            const row = sheet.addRow([index + 1, item.username, item.username_en, item.title, time, date,]); // Add data rows
           });
           const headerRow = sheet.getRow(1);
           const greenAccentColor = { argb: '6EB4F7' };
@@ -219,7 +221,7 @@ router.get('/export_data', async (req, res) => {
               fgColor: greenAccentColor // Set background color to green-accent
             };
           });
-          sheet.getRow(1).height = 30; // Set row height of row 1 to 40
+          sheet.getRow(1).height = 15; // Set row height of row 1 to 40
           sheet.getColumn(1).width = 5; // Set column width of column A to 15
           sheet.getColumn(2).width = 30; // Set column width of column B to 10
           sheet.getColumn(3).width = 30; // Set column width of column B to 10

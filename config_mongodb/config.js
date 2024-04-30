@@ -12,7 +12,7 @@ useUnifiedTopology: true,
 
 const connection = mongoose.createConnection(URL,DB_OPTIONS);
 
-const connectDB = async () => {
+const connectToiletDB = async () => {
   try {
     mongoose.set('strictQuery', true);
     const connect = await mongoose.connect(
@@ -27,9 +27,6 @@ const connectDB = async () => {
   }
 }
 
-
-
 module.exports = {
-  connectDB: connectDB,
-  URL: URL,
+  connectToiletDB:connectToiletDB,
 }

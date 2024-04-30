@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var db = require('../config_mongodb/configmain'); // Import the MongoDB connection
 
 const { ObjectId } = mongoose.Types;
 
@@ -11,5 +12,5 @@ const TokenSchema = new mongoose.Schema({
     },
 })
 
-const Token = mongoose.model("token", TokenSchema);
+const Token = db.db1.model("token", TokenSchema);
 module.exports = Token;

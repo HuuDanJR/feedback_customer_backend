@@ -19,17 +19,31 @@ app.use(morgan(':method :url :status :response-time ms - :res[content-length]', 
 app.use(cors({
   origin: '*'
 }));
+
+const { db1, db2 } = require('./config_mongodb/configmain');
+db1.once('open', () => {
+  console.log('Connection to db1 established successfully');
+});
+db2.once('open', () => {
+  console.log('Connection to db2 established successfully');
+});
+
+
 const axios = require('axios');
 app.use('/', router);
 //USER APIs
 const userRoute = require('./APIs/user_api');
-app.use('/user',userRoute);
+app.use('/user', userRoute);
 //CHECKLIST APIs
 const checklistRoute = require('./APIs/checklist_api')
-app.use('/checklist',checklistRoute);
+app.use('/checklist', checklistRoute);
 //ACCOUNT APIs
 const accountRoute = require('./APIs/account_api');
-app.use('/account',accountRoute);
+app.use('/account', accountRoute);
+
+//FEED BACK APIS
+const feedbackCustomerRoute = require('./APIs/feedback_customer_api');
+app.use('/feedback', feedbackCustomerRoute);
 
 //UPLOAD FILES
 const upload_service = require('./uploads/upload_service');
@@ -44,9 +58,7 @@ var port = process.env.PORT || 8095;
 app.listen(port);
 console.log('app running at port toilet server: ' + port);
 
-//connect mongoDB
-var config = require('./config')
-config.connectDB()
+
 //APIs USERS
 
 
@@ -402,6 +414,100 @@ app.get('/list_feedback', async (req, res) => {
     });
 });
 
+app.get('/export_feedback_status_all', async (req, res) => {
+  try {
+    const feedbackStatusPromise = feedbackModel2.find({}).sort({ createdAt: -1 }).exec();
+    const feedbackPromise = feedbackModel.find({}).sort({ createdAt: -1 }).exec();
+    // Wait for both promises to resolve
+    const [feedbackStatus, feedback] = await Promise.all([feedbackStatusPromise, feedbackPromise]);
+    // Combine the results
+    const allFeedback = { feedbackStatus, feedback };
+    const totalResult = feedbackStatus.length + feedback.length;
+
+
+
+    const workbook = new Excel.Workbook();
+    const sheet1 = workbook.addWorksheet('Sheet1');
+    const sheet2 = workbook.addWorksheet('Sheet2');
+    const row1 = sheet1.addRow(`TOTAL RESULT: ${totalResult}`);
+    const rowTitle = sheet1.addRow(["#", "ID", "RATING STAR", "FEEDBACK", "CONTENT", "IS_PROCESSED", "PROCESS_DATETIME", "DATETIME CREATED"]);
+    rowTitle.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00FF00' }, // Light blue color for the header row
+      };
+    });
+
+    feedbackStatus.forEach((item, index) => {
+      const rowItem1 = sheet1.addRow([index + 1, item.id, item.star,
+      Array.isArray(item.experience) ? item.experience.join(', ').replace(/[\[\]"]/g, '') : null,
+      item.content, item.isprocess, item.processcreateAt ? item.processcreateAt.toLocaleString() : null, item.createdAt ? item.createdAt.toLocaleString() : null]);
+      if (item.isprocess) {
+        rowItem1.eachCell((cell) => {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'ADD8E6' }, // Green color for the row
+          };
+        });
+      }
+    });
+    const rowTitle2 = sheet2.addRow(["#", "ID", "RATING STAR", "FEEDBACK", "CONTENT", "IS_PROCESSED", "PROCESS_DATETIME", "DATETIME CREATED"]);
+    rowTitle2.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00FF00' }, // Light blue color for the header row
+      };
+    });
+
+    feedback.forEach((item, index) => {
+      const rowItem2 = sheet2.addRow([index + 1, item.id, item.star,
+        Array.isArray(item.experience) ? item.experience.join(', ').replace(/[\[\]"]/g, '') : null, 
+         item.content, item.isprocess, item.processcreateAt ? item.processcreateAt.toLocaleString() : '', item.createdAt ? item.createdAt.toLocaleString() : '']);
+
+      if (item.isprocess) {
+        rowItem2.eachCell((cell) => {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'ADD8E6' }, // Green color for the row
+          };
+        });
+      }
+    });
+
+    const formattedTimestamp = functions.getFormattedTimestamp();
+    const randomString = functions.generateRandomString(3);
+    const excelFileName = `feedback_history_${formattedTimestamp}_${randomString}.xlsx`; // Generate a unique file name
+    const excelFolderPath = 'public/excel'; // Replace with your desired folder path for saving the Excel file
+    if (!fs.existsSync(excelFolderPath)) {
+      fs.mkdirSync(excelFolderPath, { recursive: true });
+    }
+    const excelFilePath = path.join(excelFolderPath, excelFileName); // Use an absolute path for the file path
+    workbook.xlsx.writeFile(excelFilePath)
+      .then(() => {
+        console.log(`Excel file was saved at: ${excelFilePath}`); // Log the file location
+        res.send({ "status": true, "message": "Feedback Excel file generated and saved on server", "filePath": excelFileName });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.send({ "status": false, "message": "Failed to generate feedback excel file", "filePath": null });
+      });
+
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to retrieve & export feedback data',
+      totalResult: null,
+      data: null,
+    });
+  }
+});
+
 
 //LIST APP FEEDBACK WITH STATUS 
 app.get('/list_feedback_status', async (req, res) => {
@@ -462,7 +568,7 @@ app.post('/create_feedback_status', async (req, res) => {
 // UPDATE FEEDBACK (isprocess and processcreateAt)
 app.post('/update_feedback_status', async (req, res) => {
   try {
-    const existingFeedback = await feedbackModel2.findOne({id:req.body.id});
+    const existingFeedback = await feedbackModel2.findOne({ id: req.body.id });
     if (!existingFeedback) {
       return res.status(404).send({ "status": false, "message": "Feedback not found", "data": null });
     }
@@ -594,7 +700,7 @@ app.post('/add_token', async (req, res) => {
 app.get('/export_feedback_all', async (req, res) => {
   const workbook = new Excel.Workbook();
   const sheet = workbook.addWorksheet('Sheet1');
-  sheet.addRow(["#", "ID", "RATING STAR", "CONTENT","FEEDBACK", "DATETIME","IS_PROCESSED","PROCRESS DATETIME"]);
+  sheet.addRow(["#", "ID", "RATING STAR", "CONTENT", "FEEDBACK", "DATETIME", "IS_PROCESSED", "PROCRESS DATETIME"]);
   try {
     const data = await feedbackModel2.find();
     if (!data || data.length === 0) {
@@ -605,12 +711,12 @@ app.get('/export_feedback_all', async (req, res) => {
         data: null,
       });
     }
-    
+
     data.forEach((item, index) => {
-      sheet.addRow([index + 1, item.id, item.star,item.content, item.experience, item.createdAt.toLocaleString(),item.isprocess,item.processcreateAt.toLocaleString()]);
+      sheet.addRow([index + 1, item.id, item.star, item.content, item.experience, item.createdAt.toLocaleString(), item.isprocess, item.processcreateAt.toLocaleString()]);
     });
     const formattedTimestamp = functions.getFormattedTimestamp();
-    const randomString = functions.generateRandomString(3); 
+    const randomString = functions.generateRandomString(3);
     const excelFileName = `feedback_history_${formattedTimestamp}_${randomString}.xlsx`; // Generate a unique file name
     const excelFolderPath = 'public/excel'; // Replace with your desired folder path for saving the Excel file
     if (!fs.existsSync(excelFolderPath)) {

@@ -7,18 +7,18 @@ const app = express();
 // Account registration
 router.post('/register', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const {username, password} = req.body;
     
     // Check if the username or username_en already exists
     const existingUser = await accountModel.findOne({ username });
     if (existingUser) {
-      return res.status(409).json({ message: 'Username already exists' });
+      return res.status(409).json({ message: 'Username already exists'});
     }
     
     // Create a new user if no duplicates found
     const user = new accountModel({ username, password });
     await user.save();
-    res.status(201).json({ message: 'Account registered successfully' });
+    res.status(201).json({ message: 'Account registered successfully'});
   } catch (error) {
     // Handle specific errors if needed
     console.error(error);
@@ -67,7 +67,7 @@ router.get('/list', async (req, res) => {
     } catch (error) {
     res.status(500).json({ error: 'Account list failed' });
     }
-    });
+});
  
 
 module.exports = router;
