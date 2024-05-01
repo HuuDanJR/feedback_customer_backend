@@ -63,10 +63,16 @@ console.log('app running at port toilet server: ' + port);
 
 
 
-//APIs home
-app.get('/', function (req, res) {
-  res.end('index page - toilet server');
-})
+// RUN WEB
+const compression = require('compression');
+app.use(compression());
+const oneDay = 86400000; // 24 hours in milliseconds
+app.use(express.static(path.join(__dirname, 'public-flutter'), { maxAge: oneDay }));
+// app.use(express.static(path.join(__dirname, 'public-flutter')));
+router.get('/', (request, response) => {
+    response.sendFile(path.join(__dirname, 'public-flutter', 'index.html'));
+});
+
 
 //WEB RESOURCE
 app.use(express.static('web/web'));
@@ -424,8 +430,6 @@ app.get('/export_feedback_status_all', async (req, res) => {
     const allFeedback = { feedbackStatus, feedback };
     const totalResult = feedbackStatus.length + feedback.length;
 
-
-
     const workbook = new Excel.Workbook();
     const sheet1 = workbook.addWorksheet('Sheet1');
     const sheet2 = workbook.addWorksheet('Sheet2');
@@ -504,9 +508,13 @@ app.get('/export_feedback_status_all', async (req, res) => {
       message: 'Failed to retrieve & export feedback data',
       totalResult: null,
       data: null,
-    });
+    }
+  );
   }
 });
+
+
+
 
 
 //LIST APP FEEDBACK WITH STATUS 
