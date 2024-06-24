@@ -41,7 +41,7 @@ if (!passwordMatch) {
 const token = jwt.sign({ userId: user._id }, 'your-secret-key', {
     expiresIn: '1h',
 });
-    res.status(200).json({status:true,message:"login successfully",token: token,});
+ res.status(200).json({status:true,message:"login successfully",token: token,});
 } catch (error) {
     res.status(500).json({ message: 'Login failed' });
 }

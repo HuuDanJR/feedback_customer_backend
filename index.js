@@ -41,6 +41,10 @@ app.use('/checklist', checklistRoute);
 const accountRoute = require('./APIs/account_api');
 app.use('/account', accountRoute);
 
+//STAFF APIs
+const staffRoute = require('./APIs/staff_api');
+app.use('/staff',staffRoute);
+
 //FEED BACK APIS
 const feedbackCustomerRoute = require('./APIs/feedback_customer_api');
 app.use('/feedback', feedbackCustomerRoute);

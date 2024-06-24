@@ -110,9 +110,9 @@ router.get("/export_feedback", async (req, res) => {
       "#",
       "INDEX",
       "CONTENT",
-      "EXPERIENCE",
       "TIME",
       "DATE",
+      "EXPERIENCE",
     ]);
     rowTitle.eachCell((cell) => {
       cell.fill = {
@@ -138,13 +138,15 @@ router.get("/export_feedback", async (req, res) => {
                 index + 1,
                 item.id,
                 item.content,
+                createdAtDate ? `${createdAtDate.getHours().toString().padStart(2, '0')}:${createdAtDate.getMinutes().toString().padStart(2, '0')}` : "",
+                createdAtDate ? `${createdAtDate.getDate().toString().padStart(2, '0')}-${(createdAtDate.getMonth() + 1).toString().padStart(2, '0')}-${createdAtDate.getFullYear()}` : "",
                 Array.isArray(item.experience)
                   ? item.experience.join(", ").replace(/[\[\]"]/g, "")
                   : null,
-                  createdAtDate ? `${createdAtDate.getHours().toString().padStart(2, '0')}:${createdAtDate.getMinutes().toString().padStart(2, '0')}` : "",
-                  createdAtDate ? `${createdAtDate.getDate().toString().padStart(2, '0')}-${(createdAtDate.getMonth() + 1).toString().padStart(2, '0')}-${createdAtDate.getFullYear()}` : "",
+                
               ]);
             });
+            
         
             const formattedTimestamp = functions.getFormattedTimestamp();
             const randomString = functions.generateRandomString(3);
