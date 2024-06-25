@@ -23,7 +23,7 @@ router.get("/list", async (req, res) => {
     userModel
       .find({ isActive: true })
       .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-      .limit(40) // Limit the results to 15 records
+      // .limit(40) // Limit the results to 15 records
       .exec(function (err, data) {
         if (err) {
           console.log(err);
@@ -67,7 +67,6 @@ router.get("/list_shuffle", async (req, res) => {
   try {
     userModel
       .find({ isActive: true })
-      .limit(40) // Limit the results to 40 records
       .exec(function (err, data) {
         if (err) {
           console.log(err);

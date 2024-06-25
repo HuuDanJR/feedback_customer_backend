@@ -48,6 +48,9 @@ app.use('/staff',staffRoute);
 //FEED BACK APIS
 const feedbackCustomerRoute = require('./APIs/feedback_customer_api');
 app.use('/feedback', feedbackCustomerRoute);
+//FEED BACK APIS
+const feedbackCustomerRouteV2 = require('./APIs/feedback_customer_api_v2');
+app.use('/feedback_v2', feedbackCustomerRouteV2);
 
 //UPLOAD FILES
 const upload_service = require('./uploads/upload_service');
