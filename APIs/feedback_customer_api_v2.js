@@ -57,8 +57,7 @@ router.get("/list", async (req, res) => {
   try {
     feedbackCustomerModel
       .find({})
-      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-      // .limit(15) // Limit the results to 15 records
+      .sort({ updateAt: -1 }) // Sort by createdAt in descending order
       .exec(function (err, data) {
         if (err) {
           console.log(err);
@@ -83,6 +82,44 @@ router.get("/list", async (req, res) => {
       });
   } catch (error) {
     res.status(500).json({ error: "get list checklist failed" });
+  }
+});
+
+
+router.get("/list/paging", async (req, res) => {
+  try {
+      const { start = 0, limit = 10 } = req.query;
+      
+      console.log(`Fetching data with start: ${start} and limit: ${limit}`);
+      
+      const data = await feedbackCustomerModel
+          .find({})
+          .sort({ updateAt: -1 }) // Sort by updateAt in descending order
+          .skip(parseInt(start)) // Skip records based on the 'start' parameter
+          .limit(parseInt(limit)) // Limit the results to the 'limit' parameter
+          .exec();
+
+      // console.log('Sorted Data:', data);
+
+      if (data.length === 0) {
+        return res.status(200).json({
+          status: false,
+          message: "find list feedback customer v2 fail",
+          totalResult: null,
+          data: data,
+        });
+      } else {
+          return res.json({
+            status: true,
+            message: "find feedback customer v2  success",
+            totalResult: data.length,
+            data: data,
+          });
+          
+      }
+  } catch (error) {
+      console.error("Error occurred while fetching data:", error);
+      res.status(500).json({ status: false, message: "An error occurred" });
   }
 });
 

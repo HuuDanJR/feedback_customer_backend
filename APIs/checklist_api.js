@@ -30,7 +30,7 @@ router.post('/create', async (req, res) => {
 router.get('/list', async (req, res) => {
     try {
         checkListModel.find({})
-        .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+        .sort({ updateAt: -1 }) // Sort by createdAt in descending order
         // .limit(15) // Limit the results to 15 records
         .exec(function (err, data) {
           if (err) {
@@ -52,9 +52,8 @@ router.get('/list', async (req, res) => {
 router.get('/list/paging', async (req, res) => {
   try {
       const { start = 0, limit = 10 } = req.query;
-
       checkListModel.find({})
-          .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+          .sort({ updateAt: -1 }) // Sort by createdAt in descending order
           .skip(parseInt(start))    // Skip records based on the 'start' parameter
           .limit(parseInt(limit))   // Limit the results to the 'limit' parameter
           .exec(function (err, data) {
@@ -77,7 +76,7 @@ router.get('/list_simple/paging', async (req, res) => {
   try {
       const { start = 0, limit = 10 } = req.query;
       checkListModel.find({})
-          .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+          .sort({ updateAt: -1 }) // Sort by createdAt in descending order
           .skip(parseInt(start))    // Skip records based on the 'start' parameter
           .limit(parseInt(limit))   // Limit the results to the 'limit' parameter
           .exec(function (err, data) {

@@ -60,10 +60,13 @@ const FeedbackCustomerV2Schema = new mongoose.Schema({
         type: String,
     },
     createdAt: {
-        default: () => moment().tz("Asia/Bangkok").toLocaleString(),//correct
-        required:true,type:String,
+        default: () => moment().tz("Asia/Bangkok").toDate(),//correct
+        required:true,type:Date,
     },
-    
+    updateAt: {
+        default: Date.now(),
+        type: Date,
+    },
     tag:{
         type:String,
         default:"testing"

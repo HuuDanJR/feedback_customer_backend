@@ -52,6 +52,42 @@ router.get("/list", async (req, res) => {
 });
 
 
+// User registration
+router.get("/list/paging", async (req, res) => {
+    try {
+      const { start = 0, limit = 10 } = req.query;
+      
+      console.log(`Fetching data with start: ${start} and limit: ${limit}`);
+      
+      const data = await userModel
+          .find({})
+          .sort({ createAt: -1 }) // Sort by updateAt in descending order
+          .skip(parseInt(start)) // Skip records based on the 'start' parameter
+          .limit(parseInt(limit)) // Limit the results to the 'limit' parameter
+          .exec();
+      if (data.length === 0) {
+        return res.status(200).json({
+          status: false,
+          message: "find list staff  fail",
+          totalResult: null,
+          data: data,
+        });
+      } else {
+          return res.json({
+            status: true,
+            message: "find staff  success",
+            totalResult: data.length,
+            data: data,
+          });
+          
+      }
+  } catch (error) {
+      console.error("Error occurred while fetching data:", error);
+      res.status(500).json({ status: false, message: "An error occurred" });
+  }
+});
+
+
 
 
 const shuffleArray = (array) => {
@@ -97,35 +133,52 @@ router.get("/list_shuffle", async (req, res) => {
 });
 
 
-//UPDATE user by _id
-router.put("/update/:id", async (req, res) => {
+// Update staff by ID
+router.put('/update/:id', async (req, res) => {
   try {
-    const userId = req.params.id;
-    const { username, password, username_en, image_url, is_active } = req.body;
-    // Check if the user exists
-    const existingUser = await userModel.findById(userId);
-    if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+    const { id } = req.params;
+    const { code, username, username_en, image_url, role,isActive } = req.body;
+    const updateFields = {};
+    if (code !== undefined) updateFields.code = code;
+    if (username !== undefined) updateFields.username = username;
+    if (username_en !== undefined) updateFields.username_en = username_en;
+    if (image_url !== undefined) updateFields.image_url = image_url;
+    if (role !== undefined) updateFields.role = role;
+    if (isActive !== undefined) updateFields.isActive = isActive;
+    const updatedStaff = await userModel.findByIdAndUpdate(id, updateFields, { new: true });
+    if (!updatedStaff) {
+      return res.status(404).json({ message: 'Staff not found' });
     }
-    // Update user fields
-    existingUser.username = username || existingUser.username;
-    existingUser.username_en = username_en || existingUser.username_en;
-    existingUser.image_url = image_url || existingUser.image_url;
-    existingUser.isActive = is_active || existingUser.isActive;
-    // Update password if provided
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      existingUser.password = hashedPassword;
-    }
-    // Save the updated user
-    await existingUser.save();
-    res
-      .status(200)
-      .json({ status: true, message: "User updated successfully" });
+    res.json({ message: 'Staff updated successfully', data: updatedStaff });
   } catch (error) {
-    res.status(500).json({ message: "Update failed" });
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ message: 'Update failed' });
   }
 });
+
+// Update staff image_url by ID
+router.put('/update_image/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { image_url } = req.body;
+    if (!image_url) {
+      return res.status(400).json({ message: 'image_url is required' });
+    }
+    const updatedStaff = await userModel.findByIdAndUpdate(
+      id,
+      { image_url },
+      { new: true }
+    );
+    if (!updatedStaff) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+    res.json({ message: 'Staff image_url updated successfully', data: updatedStaff });
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ message: 'Update failed' });
+  }
+});
+
 
 // User delete by _id
 router.delete("/delete/:id", async (req, res) => {
@@ -138,9 +191,7 @@ router.delete("/delete/:id", async (req, res) => {
     }
     // Delete the user
     await existingUser.remove();
-    res
-      .status(200)
-      .json({ status: true, message: "Staff deleted successfully" });
+    res.status(200).json({ status: true, message: "Staff deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Delete staff failed" });
   }
